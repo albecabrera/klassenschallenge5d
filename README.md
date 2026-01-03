@@ -1,5 +1,13 @@
 # 🎉 Monsterklasse 5d - Finale Version mit ALLEN Features!
 
+## 🚀 Live Demo
+
+**[🌐 Zur Anwendung →](https://albecabrera.github.io/klassenschallenge5d/)**
+
+Öffne die Anwendung direkt in deinem Browser - keine Installation nötig!
+
+---
+
 ## ✨ Alle neuen Features implementiert!
 
 ### **1. ESG-Schullogo** 🏫 ⭐ NEU
