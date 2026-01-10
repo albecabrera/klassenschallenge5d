@@ -825,6 +825,12 @@ function generatePDF(entry) {
     doc.setLineWidth(0.5);
     doc.rect(boxX, boxY, boxWidth, boxHeight);
 
+    // Hintergrund-Monster mittig mit Transparenz (VOR dem Text!)
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({opacity: 0.15}));
+    doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 100, 60, 60, '', 'NONE', 0);
+    doc.restoreGraphicsState();
+
     // Text innerhalb des Rahmens
     const textX = 20;
     let yPosition = 45;
@@ -873,9 +879,6 @@ function generatePDF(entry) {
             doc.addImage(monsterImgSrc, 'PNG', imgX, imgY, imgSize, imgSize, '', 'NONE', 0);
         }
     });
-    
-    // Hintergrund-Monster mittig
-    doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 100, 60, 60, '', 'NONE', 0);
 
     // Unterschriftsfeld
     const signatureY = 250;
@@ -949,6 +952,12 @@ function exportAllPDFs() {
         doc.setLineWidth(0.5);
         doc.rect(boxX, boxY, boxWidth, boxHeight);
 
+        // Hintergrund-Monster mittig mit Transparenz (VOR dem Text!)
+        doc.saveGraphicsState();
+        doc.setGState(new doc.GState({opacity: 0.15}));
+        doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 100, 60, 60, '', 'NONE', 0);
+        doc.restoreGraphicsState();
+
         // Text
         const textX = 20;
         let yPosition = 45;
@@ -993,9 +1002,6 @@ function exportAllPDFs() {
                 doc.addImage(monsterImgSrc, 'PNG', imgX, imgY, imgSize, imgSize, '', 'NONE', 0);
             }
         });
-        
-        // Hintergrund-Monster mittig
-        doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 100, 60, 60, '', 'NONE', 0);
 
         // Unterschrift
         const signatureY = 250;
