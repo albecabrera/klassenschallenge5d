@@ -825,11 +825,8 @@ function generatePDF(entry) {
     doc.setLineWidth(0.5);
     doc.rect(boxX, boxY, boxWidth, boxHeight);
 
-    // Hintergrund-Monster mittig mit Transparenz (VOR dem Text!)
-    doc.saveGraphicsState();
-    doc.setGState(new doc.GState({opacity: 0.15}));
-    doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 100, 60, 60, '', 'NONE', 0);
-    doc.restoreGraphicsState();
+    // Hintergrund-Monster unterhalb des Textbereichs
+    doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 205, 60, 60, '', 'NONE', 0);
 
     // Text innerhalb des Rahmens
     const textX = 20;
@@ -952,11 +949,8 @@ function exportAllPDFs() {
         doc.setLineWidth(0.5);
         doc.rect(boxX, boxY, boxWidth, boxHeight);
 
-        // Hintergrund-Monster mittig mit Transparenz (VOR dem Text!)
-        doc.saveGraphicsState();
-        doc.setGState(new doc.GState({opacity: 0.15}));
-        doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 100, 60, 60, '', 'NONE', 0);
-        doc.restoreGraphicsState();
+        // Hintergrund-Monster unterhalb des Textbereichs
+        doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 205, 60, 60, '', 'NONE', 0);
 
         // Text
         const textX = 20;
