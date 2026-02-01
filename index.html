@@ -649,8 +649,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="reasoning">Begründung / Anmerkungen zur Wochenchallenge:</label>
-                        <textarea id="reasoning" placeholder="Hier Anmerkungen zur Wochenchallenge eingeben..."></textarea>
+                        <label for="reasoning">Begründung für die roten Punkte:</label>
+                        <textarea id="reasoning" placeholder="Hier Begründung für die roten Punkte eingeben..."></textarea>
                     </div>
 
                     <!-- Monster-Bildauswahl (Mehrfachauswahl) -->
@@ -825,8 +825,12 @@ function generatePDF(entry) {
     doc.setLineWidth(0.5);
     doc.rect(boxX, boxY, boxWidth, boxHeight);
 
-    // Hintergrund-Monster unterhalb des Textbereichs
-    doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 205, 60, 60, '', 'NONE', 0);
+    // Hintergrund-Monster sehr hell/transparent im Hintergrund
+    const gState = new doc.GState({ opacity: 0.08 });
+    doc.saveGraphicsState();
+    doc.setGState(gState);
+    doc.addImage(BACKGROUND_MONSTER, 'PNG', 55, 70, 100, 100, '', 'NONE', 0);
+    doc.restoreGraphicsState();
 
     // Text innerhalb des Rahmens
     const textX = 20;
@@ -854,7 +858,7 @@ function generatePDF(entry) {
     // Dritter Absatz - Begründung
     if (entry.begruendung && entry.begruendung.trim() !== '') {
         doc.setFont('helvetica', 'bold');
-        doc.text('Anmerkungen zur Wochenchallenge:', textX, yPosition);
+        doc.text('Begründung für die roten Punkte:', textX, yPosition);
         yPosition += 10;
         doc.setFont('helvetica', 'normal');
         
@@ -949,8 +953,12 @@ function exportAllPDFs() {
         doc.setLineWidth(0.5);
         doc.rect(boxX, boxY, boxWidth, boxHeight);
 
-        // Hintergrund-Monster unterhalb des Textbereichs
-        doc.addImage(BACKGROUND_MONSTER, 'PNG', 70, 205, 60, 60, '', 'NONE', 0);
+        // Hintergrund-Monster sehr hell/transparent im Hintergrund
+        const gState = new doc.GState({ opacity: 0.08 });
+        doc.saveGraphicsState();
+        doc.setGState(gState);
+        doc.addImage(BACKGROUND_MONSTER, 'PNG', 55, 70, 100, 100, '', 'NONE', 0);
+        doc.restoreGraphicsState();
 
         // Text
         const textX = 20;
@@ -974,7 +982,7 @@ function exportAllPDFs() {
 
         if (entry.begruendung && entry.begruendung.trim() !== '') {
             doc.setFont('helvetica', 'bold');
-            doc.text('Anmerkungen zur Wochenchallenge:', textX, yPosition);
+            doc.text('Begründung für die roten Punkte:', textX, yPosition);
             yPosition += 10;
             doc.setFont('helvetica', 'normal');
             
