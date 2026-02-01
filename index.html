@@ -634,6 +634,12 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="weekDate">Woche (Datum auswählen):</label>
+                        <input type="date" id="weekDate" required onchange="updateWeekDisplay()">
+                        <div id="weekDisplay" style="margin-top: 5px; font-weight: bold; color: #4a90d9;"></div>
+                    </div>
+
+                    <div class="form-group">
                         <div class="points-grid">
                             <div class="points-box green">
                                 <label for="greenPoints">Grüne Punkte erreicht:</label>
@@ -765,6 +771,59 @@ function updateRedPoints() {
     document.getElementById('redPoints').value = redPoints;
 }
 
+// Wochenberechnung (Montag bis Freitag)
+function getWeekDates(dateInput) {
+    const date = new Date(dateInput);
+    const day = date.getDay(); // 0=So, 1=Mo, ..., 6=Sa
+
+    // Montag berechnen (wenn Sonntag, dann vorherige Woche)
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const monday = new Date(date);
+    monday.setDate(date.getDate() + diffToMonday);
+
+    // Freitag berechnen (Montag + 4 Tage)
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+
+    return { monday, friday };
+}
+
+function formatWeekString(monday, friday) {
+    const monDay = monday.getDate().toString().padStart(2, '0');
+    const friDay = friday.getDate().toString().padStart(2, '0');
+    const friMonth = (friday.getMonth() + 1).toString().padStart(2, '0');
+    const year = friday.getFullYear();
+
+    // Wenn gleicher Monat: "26.-30.01.2026", sonst "28.01.-01.02.2026"
+    if (monday.getMonth() === friday.getMonth()) {
+        return `${monDay}.-${friDay}.${friMonth}.${year}`;
+    } else {
+        const monMonth = (monday.getMonth() + 1).toString().padStart(2, '0');
+        return `${monDay}.${monMonth}.-${friDay}.${friMonth}.${year}`;
+    }
+}
+
+function updateWeekDisplay() {
+    const dateInput = document.getElementById('weekDate').value;
+    const display = document.getElementById('weekDisplay');
+
+    if (dateInput) {
+        const { monday, friday } = getWeekDates(dateInput);
+        const weekStr = formatWeekString(monday, friday);
+        display.textContent = `Woche: ${weekStr}`;
+    } else {
+        display.textContent = '';
+    }
+}
+
+// Aktuelle Woche als Standard setzen
+function setCurrentWeek() {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    document.getElementById('weekDate').value = dateStr;
+    updateWeekDisplay();
+}
+
 // Monster-Grid initialisieren (Mehrfachauswahl mit Checkboxen)
 function initMonsterGrid() {
     const monsterGrid = document.getElementById('monsterGrid');
@@ -804,12 +863,19 @@ function generatePDF(entry) {
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text('Wochenrückmeldung - Monsterklasse 5d', 20, 25);
+    doc.text('Wochenrückmeldung - Monsterklasse 5d', 20, 20);
+
+    // Woche als Untertitel
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(90, 74, 125);
+    const wocheText = entry.woche ? `Woche vom ${entry.woche}` : '';
+    doc.text(wocheText, 20, 27);
 
     // Linie unter Überschrift
     doc.setDrawColor(90, 74, 125);
     doc.setLineWidth(0.5);
-    doc.line(20, 28, 190, 28);
+    doc.line(20, 30, 190, 30);
 
     // Zurück zu normaler Schrift - GRÖSSE 20
     doc.setFont('helvetica', 'normal');
@@ -932,12 +998,19 @@ function exportAllPDFs() {
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
-        doc.text('Wochenrückmeldung - Monsterklasse 5d', 20, 25);
+        doc.text('Wochenrückmeldung - Monsterklasse 5d', 20, 20);
+
+        // Woche als Untertitel
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(90, 74, 125);
+        const wocheText = entry.woche ? `Woche vom ${entry.woche}` : '';
+        doc.text(wocheText, 20, 27);
 
         // Linie
         doc.setDrawColor(90, 74, 125);
         doc.setLineWidth(0.5);
-        doc.line(20, 28, 190, 28);
+        doc.line(20, 30, 190, 30);
 
         // Schrift
         doc.setFont('helvetica', 'normal');
@@ -1086,7 +1159,7 @@ function displayEntries() {
                 <div class="entry-header">
                     <div>
                         <div class="entry-name">${entry.anrede} ${entry.name}</div>
-                        <div class="entry-date">${dateStr}</div>
+                        <div class="entry-date">${entry.woche ? `Woche: ${entry.woche}` : dateStr}</div>
                     </div>
                     <button class="btn btn-pdf" style="min-width: auto; padding: 8px 16px;" onclick="generatePDF(${JSON.stringify(entry).replace(/"/g, '&quot;')})">📄 PDF</button>
                 </div>
@@ -1191,13 +1264,14 @@ function exportToCSV() {
     }
     
     const csv = [
-        ['Name', 'Anrede', 'Grüne Punkte', 'Rote Punkte', 'Begründung', 'Monster', 'Datum'].join(','),
+        ['Name', 'Anrede', 'Woche', 'Grüne Punkte', 'Rote Punkte', 'Begründung', 'Monster', 'Datum'].join(','),
         ...entries.map(e => {
             const date = new Date(e.timestamp).toLocaleDateString('de-DE');
             const monsters = (e.monsterImages || ['1']).join(';');
             return [
                 e.name,
                 e.anrede,
+                e.woche || '',
                 e.gruenePunkte,
                 e.rotePunkte,
                 `"${e.begruendung || ''}"`,
@@ -1238,9 +1312,15 @@ document.getElementById('feedbackForm').addEventListener('submit', function(e) {
         return;
     }
 
+    // Woche berechnen
+    const dateInput = document.getElementById('weekDate').value;
+    const { monday, friday } = getWeekDates(dateInput);
+    const woche = formatWeekString(monday, friday);
+
     const entry = {
         anrede: document.querySelector('input[name="anrede"]:checked').value,
         name: document.getElementById('studentName').value,
+        woche: woche,
         gruenePunkte: parseInt(document.getElementById('greenPoints').value),
         rotePunkte: parseInt(document.getElementById('redPoints').value) || 0,
         begruendung: document.getElementById('reasoning').value,
@@ -1266,6 +1346,8 @@ function resetForm() {
     document.getElementById('autocompleteList').style.display = 'none';
     // Reset alle Monster-Checkboxen
     document.querySelectorAll('input[name="monsterImage"]').forEach(cb => cb.checked = false);
+    // Woche neu setzen
+    setCurrentWeek();
 }
 
 // Initialisierung beim Laden
@@ -1281,7 +1363,10 @@ window.addEventListener('load', function() {
     
     // Punkte-Dropdown füllen
     initPointsDropdown();
-    
+
+    // Aktuelle Woche setzen
+    setCurrentWeek();
+
     // Einträge anzeigen
     displayEntries();
     updateStats();
