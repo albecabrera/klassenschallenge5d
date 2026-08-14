@@ -1172,6 +1172,7 @@ function displayEntries() {
                 </div>
                 ${entry.begruendung ? `<div class="entry-text">${entry.begruendung}</div>` : ''}
                 <div style="margin-top: 10px;">
+                    <button class="btn btn-secondary" style="min-width: auto; padding: 8px 16px;" onclick="editEntry(${index})">✏️ Bearbeiten</button>
                     <button class="btn btn-secondary" style="min-width: auto; padding: 8px 16px;" onclick="deleteEntry(${index})">🗑️ Löschen</button>
                 </div>
             </div>
@@ -1299,6 +1300,43 @@ function clearAllData() {
     }
 }
 
+let editingIndex = null;
+
+function parseMondayFromWoche(woche) {
+    if (!woche) return null;
+    // Format 1: "DD.-DD.MM.YYYY"
+    const m1 = woche.match(/^(\d{2})\.-(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (m1) return `${m1[4]}-${m1[3]}-${m1[1]}`;
+    // Format 2: "DD.MM.-DD.MM.YYYY"
+    const m2 = woche.match(/^(\d{2})\.(\d{2})\.-(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (m2) return `${m2[5]}-${m2[2]}-${m2[1]}`;
+    return null;
+}
+
+function editEntry(index) {
+    const entries = loadEntries();
+    const entry = entries[index];
+
+    document.querySelectorAll('input[name="anrede"]').forEach(r => r.checked = r.value === entry.anrede);
+    document.getElementById('studentName').value = entry.name;
+
+    const weekVal = entry.weekDateValue || parseMondayFromWoche(entry.woche);
+    if (weekVal) document.getElementById('weekDate').value = weekVal;
+    updateWeekDisplay();
+
+    document.getElementById('greenPoints').value = entry.gruenePunkte;
+    updateRedPoints();
+    document.getElementById('reasoning').value = entry.begruendung || '';
+
+    document.querySelectorAll('input[name="monsterImage"]').forEach(cb => {
+        cb.checked = (entry.monsterImages || []).includes(cb.value);
+    });
+
+    editingIndex = index;
+    document.querySelector('#feedbackForm button[type="submit"]').textContent = 'Aktualisieren';
+    document.getElementById('feedbackForm').scrollIntoView({ behavior: 'smooth' });
+}
+
 // Form Submit
 document.getElementById('feedbackForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -1306,7 +1344,7 @@ document.getElementById('feedbackForm').addEventListener('submit', function(e) {
     // Hole alle ausgewählten Monster-Checkboxen
     const selectedMonsters = Array.from(document.querySelectorAll('input[name="monsterImage"]:checked'))
         .map(checkbox => checkbox.value);
-    
+
     if (selectedMonsters.length === 0) {
         alert('Bitte wähle mindestens ein Monster-Bild aus!');
         return;
@@ -1321,13 +1359,23 @@ document.getElementById('feedbackForm').addEventListener('submit', function(e) {
         anrede: document.querySelector('input[name="anrede"]:checked').value,
         name: document.getElementById('studentName').value,
         woche: woche,
+        weekDateValue: dateInput,
         gruenePunkte: parseInt(document.getElementById('greenPoints').value),
         rotePunkte: parseInt(document.getElementById('redPoints').value) || 0,
         begruendung: document.getElementById('reasoning').value,
-        monsterImages: selectedMonsters  // Array von Monster-IDs
+        monsterImages: selectedMonsters
     };
 
-    addEntry(entry);
+    if (editingIndex !== null) {
+        const entries = loadEntries();
+        entry.timestamp = entries[editingIndex].timestamp;
+        entries[editingIndex] = entry;
+        saveEntries(entries);
+        displayEntries();
+        updateStats();
+    } else {
+        addEntry(entry);
+    }
     showSuccess();
     setTimeout(resetForm, 1500);
 });
@@ -1348,6 +1396,9 @@ function resetForm() {
     document.querySelectorAll('input[name="monsterImage"]').forEach(cb => cb.checked = false);
     // Woche neu setzen
     setCurrentWeek();
+    // Edit-Modus zurücksetzen
+    editingIndex = null;
+    document.querySelector('#feedbackForm button[type="submit"]').textContent = 'Speichern';
 }
 
 // Initialisierung beim Laden
